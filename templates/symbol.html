@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ symbol }} 详情</title>
+  <style>
+    .dot { height:10px; width:10px; border-radius:50%; display:inline-block; }
+    .green { background-color:#2ecc71; }
+    .yellow{ background-color:#f1c40f; }
+    table, th, td { border:1px solid #ccc; border-collapse:collapse; padding:5px; }
+    td.loading { color: #999; }
+  </style>
+</head>
+<body>
+  <h1>{{ symbol }} Whale Pump 详情</h1>
+  <p><a href="{{ url_for('index') }}">← 返回全部列表</a></p>
+  {% if values|length == 0 %}
+    <p class="loading">⚙️ 数据加载中，请稍后…</p>
+  {% else %}
+    <table>
+      <tr><th>周期</th><th>值</th></tr>
+      {% for tf in intervals %}
+        {% set v = values.get(tf) %}
+        <tr>
+          <td>{{ tf }}</td>
+          {% if v is none %}
+            <td class="loading">加载中…</td>
+          {% else %}
+            <td>
+              <span class="dot {{ 'green' if v < 400 else 'yellow' }}"></span>
+              {{ '%.2f'|format(v) }}
+            </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </table>
+  {% endif %}
+</body>
+</html>

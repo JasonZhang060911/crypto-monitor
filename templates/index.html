@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>USDT 币种 Whale Pump (前 {{symbols|length}} 个)</title>
+  <style>
+    .dot { height:10px; width:10px; border-radius:50%; display:inline-block; }
+    .green { background-color:#2ecc71; }
+    .yellow{ background-color:#f1c40f; }
+    table, th, td { border:1px solid #ccc; border-collapse:collapse; padding:5px; }
+    td.loading { color:#999; }
+  </style>
+</head>
+<body>
+  <h1>USDT 币种 Whale Pump (前 {{ symbols|length }} 个)</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Symbol</th>
+        {% for tf in intervals %}
+          <th>{{ tf }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for sym in symbols %}
+      <tr>
+        <td><a href="{{ url_for('symbol_page', symbol=sym) }}">{{ sym }}</a></td>
+        {% for tf in intervals %}
+          <td id="c-{{ sym }}-{{ tf }}" class="loading">加载中…</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    const symbols   = {{ symbols|tojson }};
+    const intervals = {{ intervals|tojson }};
+
+    async function refresh() {
+      try {
+        const resp = await fetch('/api/data');
+        const data = await resp.json();
+
+        symbols.forEach(sym => {
+          intervals.forEach(tf => {
+            const cell = document.getElementById(`c-${sym}-${tf}`);
+            const v    = data[sym]?.[tf];
+            if (v == null) {
+              // **重置为加载中**（包括被新一轮清空后）
+              cell.classList.add('loading');
+              cell.innerText = '加载中…';
+            } else {
+              // 填值并去掉 loading 样式
+              cell.classList.remove('loading');
+              cell.innerHTML = `<span class="dot ${v < 400 ? 'green' : 'yellow'}"></span> ${v.toFixed(2)}`;
+            }
+          });
+        });
+      } catch (err) {
+        console.error('刷新出错:', err);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // 初次拉取
+      refresh();
+      // 每 5 秒拉取一次
+      setInterval(refresh, 5000);
+    });
+  </script>
+</body>
+</html>
